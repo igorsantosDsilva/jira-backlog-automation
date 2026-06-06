@@ -4,7 +4,6 @@ from fastapi import FastAPI, Request
 
 app = FastAPI()
 
-# Pega o token que você acabou de salvar lá no Render
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 @app.get("/")
