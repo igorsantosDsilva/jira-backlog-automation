@@ -47,12 +47,12 @@ async def telegram_webhook(request: Request):
             
             print(f"\n[ÁUDIO] Iniciando download do File ID: {file_id}")
             
-            url_get_file = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/getFile?file_id={file_id}"
+            url_get_file = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getFile?file_id={file_id}"
             resposta_file = requests.get(url_get_file).json()
             
             if resposta_file.get("ok"):
                 file_path = resposta_file["result"]["file_path"]
-                url_download = f"[https://api.telegram.org/file/bot](https://api.telegram.org/file/bot){TELEGRAM_TOKEN}/{file_path}"
+                url_download = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
                 arquivo_binario = requests.get(url_download).content
                 
                 caminho_local = "/tmp/audio_recebido.ogg"
