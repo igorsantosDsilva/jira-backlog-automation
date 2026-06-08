@@ -23,7 +23,7 @@ def create_description_ia(request_jira:str, gemini_key:str):
     Identifique se o tipo deve ser 'Bug' ou 'Task' baseado no relato. As prioridades válidas do Jira geralmente são 'Highest', 'High', 'Medium', 'Low'.
     """
     try:
-        response = client.models.generate_content(model='gemini-3.1-flash-lite', ontents=[PROMPT_AGILE, request_jira], config=types.GenerateContentConfig(
+        response = client.models.generate_content(model='gemini-3.1-flash-lite', contents=[PROMPT_AGILE, request_jira], config=types.GenerateContentConfig(
                 response_mime_type="application/json"))
         return response.text
         
