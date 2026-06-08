@@ -17,7 +17,7 @@ def create_description_ia(request_jira:str, gemini_key:str):
     {
         "title": "Título conciso e claro da tarefa",
         "description": "O contexto detalhado em formato de User Story (Eu como... Quero... Para...). Garanta que a história descrita seja independente para não gerar dependências complexas.",
-        "type": "Task",
+        "type": "Tarefa",
         "priority": "Medium"
     }
     O tipo deve ser sempre "Tarefa". As prioridades válidas do Jira geralmente são 'Highest', 'High', 'Medium', 'Low'.
