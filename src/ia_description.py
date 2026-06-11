@@ -1,12 +1,16 @@
-from google import genai
+import os
+import logging
+
 from google.genai import types
 from dotenv import load_dotenv
-import os
+from google import genai
 from pathlib import Path
 
 env_path = Path(__file__).parent.parent / 'config' / '.env'
 load_dotenv(env_path)
 GEMINI_KEY = os.getenv('GEMINI_KEY')
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def create_description_ia(request_jira:str, gemini_key:str):
     client = genai.Client(api_key=gemini_key)
@@ -49,15 +53,16 @@ def create_description_ia(request_jira:str, gemini_key:str):
         "title": "Título conciso e claro da tarefa",
         "description": "Insira aqui TODO o conteúdo gerado com base no MODELO DE CONTEÚDO acima (incluindo o Título, o formato de User Story, a seção 1. Contexto, os 3 Cenários completos da seção 2. Critérios de Aceitação e os checkboxes da seção 3. DoD). Use quebras de linha normais (\\n) para separar os parágrafos dentro desta string.",
         "type": "Tarefa",
-        "priority": "Medium"
+        "priority": "Qual melhor se adequar"
     }
     O tipo deve ser sempre "Tarefa". As prioridades válidas do Jira geralmente são 'Highest', 'High', 'Medium', 'Low'. Escolha a prioridade que melhor se adapta ao relato do usuário.
     """
     try:
         response = client.models.generate_content(model='gemini-3.1-flash-lite', contents=[PROMPT_AGILE, request_jira], config=types.GenerateContentConfig(
                 response_mime_type="application/json"))
+        logging.info("Descrição criada com sucesso")
         return response.text
         
     except Exception as e:
-        print(f"[ERRO IA] Falha ao processar relato com Gemini: {e}")
+        logging.error(f"Erro ao processar relato com Gemini: {e}")
         return None

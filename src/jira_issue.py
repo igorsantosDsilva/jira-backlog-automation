@@ -17,15 +17,7 @@ JIRA_TOKEN = os.getenv('JIRA_API_TOKEN')
 JIRA_PROJECT_KEY = os.getenv('JIRA_PROJECT_KEY')
 SPREDSHEET_ID = os.getenv('SPREDSHEET_ID')
 
-# Debug: Verificar se as variáveis foram carregadas
-logging.info(f"JIRA_URL: {JIRA_URL}")
-logging.info(f"JIRA_EMAIL: {JIRA_EMAIL}")
-logging.info(f"JIRA_TOKEN: {JIRA_TOKEN}")
-logging.info(f"JIRA_PROJECT_KEY: {JIRA_PROJECT_KEY}")
-
-def create_issue(comand, jira_url:str, jira_email:str, jira_token:str, jira_project_key:str):
-
-    
+def create_issue(comand, jira_url:str, jira_email:str, jira_token:str, jira_project_key:str):    
     atividade = comand
     title = atividade['title']
     description = atividade['description']
@@ -81,12 +73,8 @@ def create_issue(comand, jira_url:str, jira_email:str, jira_token:str, jira_proj
 
     if response.status_code == 201:
         
-        print('deu bom')
+        logging.info(f'Issue {title} criada com sucesso!')
 
     else:
 
-        print(
-            "deu ruim"
-        )
-
-        print(response.text)
+        logging.error(f"Erro ao tentar criar a issue: {response.text}")
