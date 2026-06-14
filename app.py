@@ -1,19 +1,22 @@
 import os
 import json
 import logging
-from fastapi import FastAPI, Request
-from google import genai
 import requests
-from src.jira_issue import create_issue
+
 from src.ia_description import create_description_ia
+from src.response_bot import resposta_bot
+from src.jira_issue import create_issue
+from fastapi import FastAPI, Request
 from dotenv import load_dotenv
+from google import genai
 from pathlib import Path
 
 env_path = Path(__file__).parent.parent / 'config' / '.env'
 load_dotenv(env_path)
 GEMINI_KEY = os.getenv('GEMINI_KEY')
 
-# Configurações do Jira puxadas do .env para passar na função
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 JIRA_URL = os.getenv('JIRA_URL')
 JIRA_EMAIL = os.getenv('JIRA_EMAIL')
 JIRA_TOKEN = os.getenv('JIRA_API_TOKEN')
@@ -32,20 +35,20 @@ async def telegram_webhook(request: Request):
     
     if "message" in payload:
         message = payload["message"]
+        chat_id = message["chat"]["id"]
         texto_ia_retorno = None
+        resposta_bot(chat_id, "Processando sua solicitação...")
         
-        # --- CENÁRIO A: É MENSAGEM DE TEXTO ---
         if "text" in message:
             text_content = message['text']
-            print(f"\n[TEXTO] Processando: {text_content}")
+            logging.warning(f"\n[TEXTO] Processando: {text_content}")
             texto_ia_retorno = create_description_ia(text_content, GEMINI_KEY)
             
-        # --- CENÁRIO B: É MENSAGEM DE ÁUDIO ---
         elif "voice" in message:
             dados_audio = message["voice"]
             file_id = dados_audio["file_id"]
             
-            print(f"\n[ÁUDIO] Iniciando download do File ID: {file_id}")
+            logging.warning(f"\n[ÁUDIO] Iniciando download do File ID: {file_id}")
             
             url_get_file = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getFile?file_id={file_id}"
             resposta_file = requests.get(url_get_file).json()
@@ -59,26 +62,20 @@ async def telegram_webhook(request: Request):
                 with open(caminho_local, "wb") as f:
                     f.write(arquivo_binario)
                     
-                print(f"[SUCESSO] Áudio salvo em: {caminho_local}")
+                logging.info(f"Áudio salvo em: {caminho_local}")
                 
-                # Para enviar arquivos usando o novo google-genai SDK:
                 client_files = genai.Client(api_key=GEMINI_KEY)
                 audio_upload = client_files.files.upload(file=Path(caminho_local))
                 
-                print("[IA] Analisando áudio com Gemini...")
+                logging.warning("Analisando áudio com Gemini...")
                 texto_ia_retorno = create_description_ia(audio_upload, GEMINI_KEY)
                 
-                # Limpa o arquivo da nuvem da Google após o uso
                 client_files.files.delete(name=audio_upload.name)
         
-        # --- ETAPA FINAL: SE A IA GEROU O TICKET, CRIA NO JIRA ---
         if texto_ia_retorno:
             try:
-                # Converte a string de texto JSON vinda da IA em um dicionário Python
                 comando_jira = json.loads(texto_ia_retorno)
-                print(f"[JIRA] Dados estruturados recebidos da IA: {comando_jira}")
-                
-                # Executa a sua função de criação de card
+                logging.info(f"[JIRA] Dados estruturados recebidos da IA: {comando_jira}")
                 create_issue(
                     comand=comando_jira,
                     jira_url=JIRA_URL,
@@ -86,8 +83,10 @@ async def telegram_webhook(request: Request):
                     jira_token=JIRA_TOKEN,
                     jira_project_key=JIRA_PROJECT_KEY
                 )
+                resposta_bot(chat_id, f"Task criada com sucesso no Jira!: {comando_jira}")
             except Exception as e:
-                print(f"[ERRO INTEGRACAO] Falha ao processar JSON ou criar issue no Jira: {e}")
-                print(f"Conteúdo bruto da IA: {texto_ia_retorno}")
+                logging.error(f"Falha ao processar JSON ou criar issue no Jira: {e}")
+                resposta_bot(chat_id,"Ocorreu um erro ao criar a task no Jira.")
+                logging.debug(f"Conteúdo bruto da IA: {texto_ia_retorno}")
                 
     return {"status": "ok"}
