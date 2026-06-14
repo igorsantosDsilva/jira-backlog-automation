@@ -83,7 +83,7 @@ async def telegram_webhook(request: Request):
                     jira_token=JIRA_TOKEN,
                     jira_project_key=JIRA_PROJECT_KEY
                 )
-                resposta_bot(chat_id, f"Task criada com sucesso no Jira!: {comando_jira}")
+                resposta_bot(chat_id, f"Task criada com sucesso no Jira!: {comando_jira['title']}")
             except Exception as e:
                 logging.error(f"Falha ao processar JSON ou criar issue no Jira: {e}")
                 resposta_bot(chat_id,"Ocorreu um erro ao criar a task no Jira.")
