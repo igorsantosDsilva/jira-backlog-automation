@@ -4,6 +4,7 @@ import logging
 import requests
 
 from src.ia_description import create_description_ia
+from src.response_bot import resposta_bot
 from src.jira_issue import create_issue
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
@@ -34,7 +35,9 @@ async def telegram_webhook(request: Request):
     
     if "message" in payload:
         message = payload["message"]
+        chat_id = message["chat"]["id"]
         texto_ia_retorno = None
+        resposta_bot(chat_id, "Processando sua solicitação...")
         
         if "text" in message:
             text_content = message['text']
@@ -80,8 +83,10 @@ async def telegram_webhook(request: Request):
                     jira_token=JIRA_TOKEN,
                     jira_project_key=JIRA_PROJECT_KEY
                 )
+                resposta_bot(chat_id, f"Task criada com sucesso no Jira!: {comando_jira}")
             except Exception as e:
                 logging.error(f"Falha ao processar JSON ou criar issue no Jira: {e}")
+                resposta_bot(chat_id,"Ocorreu um erro ao criar a task no Jira.")
                 logging.debug(f"Conteúdo bruto da IA: {texto_ia_retorno}")
                 
     return {"status": "ok"}
