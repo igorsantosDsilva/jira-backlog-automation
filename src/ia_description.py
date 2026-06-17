@@ -23,7 +23,7 @@ def create_description_ia(request_jira:str, gemini_key:str):
 
         ---
 
-        MODELO A: DESENVOLVIMENTO (Refinery Station)
+        MODELO A: DESENVOLVIMENTO
         [Título Claro e Objetivo]
 
         1. Contexto e Detalhes Técnicos
